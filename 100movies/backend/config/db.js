@@ -50,5 +50,14 @@ class DbStorage{
 }
 
 const dbStorage = new DbStorage();
+// Ensure schema synchronization
+  dbStorage.sync()
+    .then(() => {
+        console.log('Database schema synchronized');
+    })
+    .catch(error => {
+        console.error('Database schema sync error:', error);
+    });
+
 dbStorage.checkLife();
 export default dbStorage;

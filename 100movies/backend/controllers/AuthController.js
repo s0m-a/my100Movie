@@ -1,9 +1,8 @@
 
 import { compare as compareHash, hash as hashPassword } from 'bcrypt';
 import dbStorage from "../config/db.js"; // Assuming this provides database connection
-import pkg from 'uuid';
-const { v4: uuidv4 } = pkg;
-import { User, Movie } from '../models/model_asso.js';
+import { v4 as uuidv4 } from 'uuid';
+import { User} from '../models/model_asso.js';
 import bcrypt from 'bcrypt'
 export default class AuthController {
   
@@ -63,8 +62,7 @@ export default class AuthController {
     }
 
     // Successful login
-
-    return { status: 'OK', userId: user.id, userName: user.userName};
+    return { status: 'OK', userId: user.id, userNamess: user.userName};
   }
 
 }

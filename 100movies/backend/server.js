@@ -7,12 +7,28 @@ import AuthController from './controllers/AuthController.js';
 // import movieRouter from './routes/movies.js';
 import dbStorage from './config/db.js';
 import Movie from './models/movies.js';
-
-
+import SequelizeStore from 'connect-session-sequelize';
+import Session from './models/session.js';
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5050;
+
+const SequelizeSessionStore = SequelizeStore(session.Store); // Use a different name to avoid conflict
+
+// Initialize the session store
+const sessionStore = new SequelizeSessionStore({
+    db: dbStorage.db
+});
+
+
+sessionStore.sync()
+    .then(() => {
+        console.log('Session store synced');
+    })
+    .catch(error => {
+        console.error('Session store sync error:', error);
+    });
 
 // Middleware
 app.use(bodyParser.json());
@@ -23,18 +39,20 @@ app.use(cors({
     credentials: true,
 }));
 
-
+// Middleware for parsing request bodies
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-// Middleware
+
+
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: false,
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours
-  }
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStore,
+    cookie: {
+        secure: false,
+        maxAge: 24 * 60 * 60 * 1000
+    }
 }));
 
 
@@ -43,6 +61,15 @@ app.use(session({
 // Define routes
 app.get('/', (req, res) => {
     res.send('Welcome to the 100Movies API');
+});
+
+// Example route to check session
+app.get('/api/check-session', (req, res) => {
+    if (req.session.userId) {
+        res.json({ userId: req.session.userId });
+    } else {
+        res.status(401).json({ message: 'No user logged in' });
+    }
 });
 
 app.post('/api/register', async (req, res) => {
@@ -78,6 +105,9 @@ app.post('/api/login', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+
+
+  
 
 app.post('/api/addMovies', async (req, res) => {
   console.log('Session data:', req.session); // Debug session data
